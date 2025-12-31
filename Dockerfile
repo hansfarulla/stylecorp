@@ -98,14 +98,14 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
 # Configure Nginx
-COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+#COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 
 # Configure Supervisor
-COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+#COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy startup script
-COPY docker/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+#COPY docker/start.sh /usr/local/bin/start.sh
+#RUN chmod +x /usr/local/bin/start.sh
 
 # Create necessary directories
 RUN mkdir -p /var/www/html/storage/logs \
