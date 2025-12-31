@@ -5,6 +5,8 @@ import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 import path from 'path';
 
+const isDockerBuild = process.env.VITE_DOCKER_BUILD === 'true';
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -20,6 +22,9 @@ export default defineConfig({
         tailwindcss(),
         wayfinder({
             formVariants: true,
+            // En builds dentro de Docker evitamos ejecutar `php artisan`
+            // y asumimos que los tipos ya fueron generados previamente.
+            command: isDockerBuild ? 'true' : 'php artisan wayfinder:generate --with-form',
         }),
     ],
     resolve: {

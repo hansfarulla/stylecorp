@@ -16,6 +16,8 @@ COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY components.json ./
 
+ENV VITE_DOCKER_BUILD=true
+
 # Build assets
 RUN npm run build
 
