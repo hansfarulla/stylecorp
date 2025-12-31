@@ -1,20 +1,29 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-echo "🚀 Starting StyleCorp deployment..."
+# Get PORT from environment variable (Coolify sets this)
+export NGINX_PORT=${PORT:-80}
 
-# Wait for database to be ready
-echo "⏳ Waiting for database..."
-until php artisan db:show 2>/dev/null; do
-    echo "Database is unavailable - sleeping"
-    sleep 2
-done
+# Replace PORT in nginx config
+envsubst '${PORT}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf
 
-echo "✅ Database is ready!"
+echo "🚀 Starting StyleCorp on port ${NGINX_PORT}..."
 
-# Run migrations
-echo "🔄 Running migrations..."
-php artisan migrate --force
+# Wait for database to be ready (only if DB_HOST is set)
+if [ ! -z "$DB_HOST" ]; then
+    echo "⏳ Waiting for database..."
+    until php artisan db:show 2>/dev/null; do
+        echo "Database is unavailable - sleeping"
+        sleep 2
+    done
+    echo "✅ Database is ready!"
+fi
+
+# Run migrations (only if DB is configured)
+if [ ! -z "$DB_HOST" ]; then
+    echo "🔄 Running migrations..."
+    php artisan migrate --force
+fi
 
 # Clear and cache config
 echo "🗑️ Clearing caches..."
@@ -39,7 +48,7 @@ echo "🔒 Setting permissions..."
 chown -R www-data:www-data /var/www/html/storage
 chown -R www-data:www-data /var/www/html/bootstrap/cache
 
-echo "✅ Deployment complete!"
+echo "✅ Deployment complete! Listening on port ${NGINX_PORT}"
 
 # Start supervisor
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
