@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy composer files
 COPY composer.json composer.lock ./
 
-# Install dependencies without dev dependencies
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# Install dependencies without dev dependencies (pero generando autoload)
+RUN composer install --no-dev --no-scripts --prefer-dist
 
 # Copy application code
 COPY . .
