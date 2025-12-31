@@ -1,45 +1,35 @@
-# Build stage for Node.js assets
-FROM node:20-alpine AS node-builder
 
+# Etapa Node: solo instala dependencias
+FROM node:20-alpine AS node-deps
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci --only=production=false
 
-# Copy source files needed for build
-COPY resources ./resources
-COPY public ./public
-COPY vite.config.ts ./
-COPY tsconfig.json ./
-COPY components.json ./
-
-# Build assets
-RUN npm run build
-
-# PHP Dependencies stage
+# Etapa Composer: PHP + Node para build de assets
 FROM composer:2 AS composer-builder
-
 WORKDIR /app
 
-# Copy composer files
+# Copia composer files y node_modules
 COPY composer.json composer.lock ./
+COPY --from=node-deps /app/node_modules ./node_modules
+COPY package*.json ./
 
-# Install dependencies without dev dependencies
+# Instala dependencias PHP
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# Copy application code
+# Copia el resto del código
 COPY . .
 
-# Generate optimized autoloader
+# Genera autoloader optimizado
 RUN composer dump-autoload --optimize --classmap-authoritative
 
-# Final production stage
+# Build de assets (Vite) usando PHP disponible
+RUN npm run build
+
+# Etapa final: solo PHP-FPM, Nginx, Supervisor
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies
+# Instala dependencias del sistema
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -56,7 +46,7 @@ RUN apk add --no-cache \
     curl \
     bash
 
-# Install PHP extensions
+# Instala extensiones PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
@@ -69,13 +59,13 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     zip \
     opcache
 
-# Install Redis extension
+# Instala Redis extension
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apk del .build-deps
 
-# Configure PHP for production
+# Configura PHP para producción
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && echo "opcache.enable=1" >> "$PHP_INI_DIR/php.ini" \
     && echo "opcache.memory_consumption=256" >> "$PHP_INI_DIR/php.ini" \
@@ -86,40 +76,37 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 
 WORKDIR /var/www/html
 
-# Copy application from composer stage
+# Copia todo el código y assets ya buildados
 COPY --from=composer-builder /app /var/www/html
 
-# Copy built assets from node stage
-COPY --from=node-builder /app/public/build /var/www/html/public/build
-
-# Set proper permissions
+# Permisos
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Configure Nginx
-#COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+# Configuración Nginx
+COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 
-# Configure Supervisor
-#COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Configuración Supervisor
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy startup script
-#COPY docker/start.sh /usr/local/bin/start.sh
-#RUN chmod +x /usr/local/bin/start.sh
+# Script de inicio
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
-# Create necessary directories
+# Crea directorios necesarios
 RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
     && mkdir -p /var/www/html/storage/framework/cache \
     && chown -R www-data:www-data /var/www/html/storage
 
-# Expose port
+# Exponer puerto
 EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
     CMD curl -f http://localhost/health || exit 1
 
-# Start services with startup script
+# Comando de inicio
 CMD ["/usr/local/bin/start.sh"]
