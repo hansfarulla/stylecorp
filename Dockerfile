@@ -28,7 +28,7 @@ RUN apk add --no-cache nodejs npm
 RUN npm run build
 
 # Etapa final: solo PHP-FPM, Nginx, Supervisor
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Instala dependencias del sistema necesarias
 RUN apk add --no-cache \
