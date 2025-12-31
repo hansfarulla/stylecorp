@@ -3,10 +3,18 @@ set -e
 
 echo "🚀 Starting StyleCorp deployment..."
 
-# Wait for database to be ready
-echo "⏳ Waiting for database..."
+
+# Espera hasta 2 minutos por la base de datos
+echo "⏳ Waiting for database (timeout 120s)..."
+MAX_ATTEMPTS=60
+ATTEMPT=1
 until php artisan db:show 2>/dev/null; do
-    echo "Database is unavailable - sleeping"
+    if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+        echo "❌ Database is still unavailable after $((MAX_ATTEMPTS*2)) seconds. Exiting."
+        exit 1
+    fi
+    echo "Database is unavailable - sleeping ($ATTEMPT/$MAX_ATTEMPTS)"
+    ATTEMPT=$((ATTEMPT+1))
     sleep 2
 done
 
