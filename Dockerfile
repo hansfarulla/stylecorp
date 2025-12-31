@@ -24,6 +24,7 @@ COPY . .
 RUN composer dump-autoload --optimize --classmap-authoritative
 
 # Build de assets (Vite) usando PHP disponible
+RUN apk add --no-cache nodejs npm
 RUN npm run build
 
 # Etapa final: solo PHP-FPM, Nginx, Supervisor
