@@ -42,7 +42,7 @@ ENV VITE_DOCKER_BUILD=true
 RUN npm run build
 
 # Final production stage
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Install system dependencies (incluyendo herramientas de compilación para extensiones PHP)
 RUN apk add --no-cache \
