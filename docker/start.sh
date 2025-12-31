@@ -20,8 +20,8 @@ if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
     fi
 fi
 
-# Wait for database to be ready (only if DB_HOST is set)
-if [ ! -z "$DB_HOST" e]; then
+ # Wait for database to be ready (only if DB_HOST is set)
+if [ ! -z "$DB_HOST" ]; then
     echo "⏳ Waiting for database..."
     until php artisan db:show 2>/dev/null; do
         echo "Database is unavailable - sleeping"
