@@ -77,6 +77,8 @@ WORKDIR /var/www/html
 
 # Copia todo el código y assets ya buildados
 COPY --from=composer-builder /app /var/www/html
+# Copia el .env.docker como .env para producción Docker
+COPY .env.docker /var/www/html/.env
 
 # Permisos
 RUN chown -R www-data:www-data /var/www/html \
