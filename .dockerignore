@@ -19,3 +19,4 @@ doc/
 .eslintrc
 .prettierrc
 phpunit.xml
+docker/

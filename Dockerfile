@@ -1,23 +1,3 @@
-# PHP Dependencies stage (including Wayfinder types generation)
-FROM composer:2 AS composer-builder
-
-WORKDIR /app
-
-# Copy composer files
-COPY composer.json composer.lock ./
-
-# Install dependencies without dev dependencies (pero generando autoload)
-RUN composer install --no-dev --no-scripts --prefer-dist
-
-# Copy application code
-COPY . .
-
-# Generate Wayfinder TypeScript definitions (routes, actions, etc.)
-RUN php artisan wayfinder:generate --with-form
-
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize --classmap-authoritative
-
 # Build stage for Node.js assets
 FROM node:20-alpine AS node-builder
 
@@ -29,28 +9,42 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci --only=production=false
 
-# Copy source files (including Wayfinder-generated files) from composer stage
-COPY --from=composer-builder /app/resources ./resources
-COPY --from=composer-builder /app/public ./public
+# Copy source files needed for build
+COPY resources ./resources
+COPY public ./public
 COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY components.json ./
 
-ENV VITE_DOCKER_BUILD=true
-
 # Build assets
 RUN npm run build
 
-# Final production stage
-FROM php:8.4-fpm-alpine
+# PHP Dependencies stage
+FROM composer:2 AS composer-builder
 
-# Install system dependencies (incluyendo herramientas de compilación para extensiones PHP)
+WORKDIR /app
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
+# Install dependencies without dev dependencies
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Copy application code
+COPY . .
+
+# Generate optimized autoloader
+RUN composer dump-autoload --optimize --classmap-authoritative
+
+# Final production stage
+FROM php:8.2-fpm-alpine
+
+# Install system dependencies
 RUN apk add --no-cache \
     nginx \
     supervisor \
     mysql-client \
     postgresql-client \
-    postgresql-dev \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
@@ -60,36 +54,26 @@ RUN apk add --no-cache \
     unzip \
     git \
     curl \
-    bash \
-    gettext \
-    autoconf \
-    dpkg-dev \
-    dpkg \
-    file \
-    g++ \
-    gcc \
-    libc-dev \
-    make \
-    pkgconf \
-    re2c
+    bash
 
-# Install PHP extensions (usando deps ya instaladas y evitando que docker-php-ext-install llame a apk)
-RUN export PHPIZE_DEPS="" \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-       pdo_mysql \
-       pdo_pgsql \
-       mbstring \
-       exif \
-       pcntl \
-       bcmath \
-       gd \
-       zip \
-       opcache
+    pdo_mysql \
+    pdo_pgsql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip \
+    opcache
 
-# Install Redis extension (ya tenemos herramientas de compilación)
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+# Install Redis extension
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
 
 # Configure PHP for production
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
@@ -114,7 +98,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
 # Configure Nginx
-COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf.template
+COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 
 # Configure Supervisor
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -128,12 +112,10 @@ RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
     && mkdir -p /var/www/html/storage/framework/cache \
-    && mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /var/www/html/storage
 
-# Expose port (Coolify will override this with PORT env var)
+# Expose port
 EXPOSE 80
-EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \

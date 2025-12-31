@@ -1,41 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-# Get PORT from environment variable (Coolify sets this)
-export NGINX_PORT=${PORT:-80}
+echo "🚀 Starting StyleCorp deployment..."
 
+# Wait for database to be ready
+echo "⏳ Waiting for database..."
+until php artisan db:show 2>/dev/null; do
+    echo "Database is unavailable - sleeping"
+    sleep 2
+done
 
-# Reemplazar ${PORT} en la plantilla de nginx por el valor real
-envsubst '${PORT}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf
+echo "✅ Database is ready!"
 
-echo "🚀 Starting StyleCorp on port ${NGINX_PORT}..."
-
-# Create SQLite database file if it doesn't exist and DB_CONNECTION is sqlite
-if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
-    DB_PATH="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
-    if [ ! -f "$DB_PATH" ]; then
-        echo "📁 Creating SQLite database at $DB_PATH..."
-        mkdir -p "$(dirname "$DB_PATH")"
-        touch "$DB_PATH"
-        chown www-data:www-data "$DB_PATH"
-    fi
-fi
-
- # Wait for database to be ready (only if DB_HOST is set)
-if [ ! -z "$DB_HOST" ]; then
-    echo "⏳ Waiting for database..."
-    until php artisan db:show 2>/dev/null; do
-        echo "Database is unavailable - sleeping"
-        sleep 2
-    done
-    echo "✅ Database is ready!"
-fi
-
-# Run migrations (always run if DB is configured or sqlite)
-if [ ! -z "$DB_HOST" ] || [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
-    echo "🔄 Running migrations..."
-    php artisan migrate --force
-fi
+# Run migrations
+echo "🔄 Running migrations..."
+php artisan migrate --force
 
 # Clear and cache config
 echo "🗑️ Clearing caches..."
@@ -60,7 +39,7 @@ echo "🔒 Setting permissions..."
 chown -R www-data:www-data /var/www/html/storage
 chown -R www-data:www-data /var/www/html/bootstrap/cache
 
-echo "✅ Deployment complete! Listening on port ${NGINX_PORT}"
+echo "✅ Deployment complete!"
 
 # Start supervisor
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
