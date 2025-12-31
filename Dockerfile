@@ -1,27 +1,4 @@
-# Build stage for Node.js assets
-FROM node:20-alpine AS node-builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production=false
-
-# Copy source files needed for build
-COPY resources ./resources
-COPY public ./public
-COPY vite.config.ts ./
-COPY tsconfig.json ./
-COPY components.json ./
-
-ENV VITE_DOCKER_BUILD=true
-
-# Build assets
-RUN npm run build
-
-# PHP Dependencies stage
+# PHP Dependencies stage (including Wayfinder types generation)
 FROM composer:2 AS composer-builder
 
 WORKDIR /app
@@ -35,8 +12,34 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 # Copy application code
 COPY . .
 
+# Generate Wayfinder TypeScript definitions (routes, actions, etc.)
+RUN php artisan wayfinder:generate --with-form
+
 # Generate optimized autoloader
 RUN composer dump-autoload --optimize --classmap-authoritative
+
+# Build stage for Node.js assets
+FROM node:20-alpine AS node-builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production=false
+
+# Copy source files (including Wayfinder-generated files) from composer stage
+COPY --from=composer-builder /app/resources ./resources
+COPY --from=composer-builder /app/public ./public
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY components.json ./
+
+ENV VITE_DOCKER_BUILD=true
+
+# Build assets
+RUN npm run build
 
 # Final production stage
 FROM php:8.2-fpm-alpine
