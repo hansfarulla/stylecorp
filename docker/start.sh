@@ -4,7 +4,8 @@ set -e
 # Get PORT from environment variable (Coolify sets this)
 export NGINX_PORT=${PORT:-80}
 
-# Replace PORT in nginx config
+
+# Reemplazar ${PORT} en la plantilla de nginx por el valor real
 envsubst '${PORT}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf
 
 echo "🚀 Starting StyleCorp on port ${NGINX_PORT}..."
