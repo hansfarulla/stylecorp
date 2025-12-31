@@ -47,6 +47,8 @@ RUN apk add --no-cache \
     curl \
     bash
 
+# Instala dependencias para pdo_pgsql
+RUN apk add --no-cache postgresql-dev
 # Instala extensiones PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
