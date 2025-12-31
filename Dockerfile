@@ -75,10 +75,12 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 
 WORKDIR /var/www/html
 
-# Copia .env.docker en la etapa composer-builder
+# Copia .env.docker como .env en la etapa composer-builder
 COPY .env.docker /app/.env
-# Copia todo el código y assets ya buildados (incluyendo .env)
+# Copia todo el código y assets ya buildados
 COPY --from=composer-builder /app /var/www/html
+# Fuerza la copia de .env.docker como .env en el contenedor final
+COPY .env.docker /var/www/html/.env
 
 # Permisos
 RUN chown -R www-data:www-data /var/www/html \
