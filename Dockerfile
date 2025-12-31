@@ -30,12 +30,11 @@ RUN npm run build
 # Etapa final: solo PHP-FPM, Nginx, Supervisor
 FROM php:8.2-fpm-alpine
 
-# Instala dependencias del sistema
+# Instala dependencias del sistema necesarias
 RUN apk add --no-cache \
     nginx \
     supervisor \
     mysql-client \
-    postgresql-client \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
