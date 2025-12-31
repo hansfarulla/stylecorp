@@ -50,6 +50,7 @@ RUN apk add --no-cache \
     supervisor \
     mysql-client \
     postgresql-client \
+    postgresql-dev \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
