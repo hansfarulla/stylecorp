@@ -44,7 +44,7 @@ RUN npm run build
 # Final production stage
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies (incluyendo herramientas de compilación para extensiones PHP)
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -61,26 +61,35 @@ RUN apk add --no-cache \
     git \
     curl \
     bash \
-    gettext
+    gettext \
+    autoconf \
+    dpkg-dev \
+    dpkg \
+    file \
+    g++ \
+    gcc \
+    libc-dev \
+    make \
+    pkgconf \
+    re2c
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+# Install PHP extensions (usando deps ya instaladas y evitando que docker-php-ext-install llame a apk)
+RUN export PHPIZE_DEPS="" \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-    pdo_mysql \
-    pdo_pgsql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip \
-    opcache
+       pdo_mysql \
+       pdo_pgsql \
+       mbstring \
+       exif \
+       pcntl \
+       bcmath \
+       gd \
+       zip \
+       opcache
 
-# Install Redis extension
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apk del .build-deps
+# Install Redis extension (ya tenemos herramientas de compilación)
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
 # Configure PHP for production
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
