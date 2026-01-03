@@ -25,6 +25,7 @@ COPY vite.config.ts tsconfig.json components.json ./
 COPY .env.docker ./.env
 
 # Copia código fuente (esto invalida caché solo si el código cambia)
+COPY artisan ./
 COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
