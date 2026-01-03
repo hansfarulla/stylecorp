@@ -21,7 +21,7 @@ COPY --from=node-deps /app/node_modules ./node_modules
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 # Copia archivos de configuración que cambian poco
-COPY vite.config.ts tsconfig.json tailwind.config.ts postcss.config.js components.json ./
+COPY vite.config.ts tsconfig.json components.json ./
 COPY .env.docker ./.env
 
 # Copia código fuente (esto invalida caché solo si el código cambia)
