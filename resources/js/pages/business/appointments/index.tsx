@@ -776,65 +776,53 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                     }
                                     @media (max-width: 768px) {
                                         .fc .fc-toolbar {
-                                            display: flex;
-                                            flex-direction: column;
-                                            gap: 0.75rem;
-                                            align-items: stretch;
-                                        }
-                                        .fc .fc-toolbar-chunk {
-                                            display: flex;
-                                            justify-content: space-between;
-                                            align-items: center;
-                                        }
-                                        .fc .fc-toolbar-chunk:nth-child(1) {
-                                            order: 2;
-                                        }
-                                        .fc .fc-toolbar-chunk:nth-child(2) {
-                                            order: 1;
-                                        }
-                                        .fc .fc-toolbar-chunk:nth-child(3) {
-                                            order: 2;
+                                            padding: 0.5rem 0;
                                         }
                                         .fc-header-toolbar {
-                                            display: grid !important;
-                                            grid-template-columns: 1fr 2fr 1fr;
-                                            grid-template-rows: auto;
-                                            gap: 0.5rem;
-                                            width: 100%;
+                                            display: flex !important;
+                                            flex-direction: row;
                                             align-items: center;
+                                            width: 100%;
+                                            gap: 0;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk {
                                             display: flex;
                                             align-items: center;
+                                            height: 100%;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk:nth-child(1) {
-                                            grid-column: 1;
-                                            justify-self: start;
+                                            flex: 1;
+                                            justify-content: flex-start;
+                                            align-items: center;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
-                                            grid-column: 2;
-                                            justify-self: center;
+                                            flex: 1;
+                                            justify-content: center;
+                                            align-items: center;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk:nth-child(3) {
-                                            grid-column: 3;
-                                            justify-self: end;
+                                            flex: 1;
+                                            justify-content: flex-end;
+                                            align-items: center;
+                                            visibility: hidden;
                                         }
                                         .fc .fc-toolbar-title {
                                             font-size: 1.125rem;
                                             font-weight: 700;
                                             text-align: center;
-                                            width: 100%;
                                             line-height: 1;
                                             padding: 0;
                                             margin: 0;
+                                            display: inline-block;
+                                            vertical-align: middle;
                                         }
                                         .fc .fc-button {
-                                            padding: 0.4rem 0.6rem;
+                                            padding: 0.4rem 0.75rem;
                                             font-size: 0.8rem;
                                             line-height: 1;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
+                                            height: auto;
+                                            min-height: unset;
+                                            vertical-align: middle;
                                         }
                                         .fc .fc-daygrid-day-frame {
                                             min-height: 80px;
