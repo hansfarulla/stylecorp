@@ -7,8 +7,11 @@ services:
         - APP_ENV=production
     image: stylecorp:latest
     restart: unless-stopped
-    ports:
-      - "8080:80"
+    labels:
+      caddy: "http://n4o04048gwow0sc088ow4s0g.186.179.68.24.sslip.io"
+      caddy.reverse_proxy: "{{upstreams 80}}"
+    expose:
+      - "80"
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
