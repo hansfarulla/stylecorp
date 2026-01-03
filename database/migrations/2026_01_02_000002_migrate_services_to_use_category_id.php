@@ -12,23 +12,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Agregar columna category_id
-        Schema::table('services', function (Blueprint $table) {
-            $table->foreignId('category_id')->nullable()->after('slug')->constrained('service_categories')->nullOnDelete();
-        });
+        // Agregar columna category_id solo si no existe
+        if (!Schema::hasColumn('services', 'category_id')) {
+            Schema::table('services', function (Blueprint $table) {
+                $table->foreignId('category_id')->nullable()->after('slug')->constrained('service_categories')->nullOnDelete();
+            });
+        }
 
         // Migrar datos existentes: crear categorías por defecto y asignarlas
         $this->migrateExistingCategories();
 
-        // Eliminar la columna category (enum)
-        Schema::table('services', function (Blueprint $table) {
-            $table->dropColumn('category');
-        });
+        // Eliminar la columna category (enum) solo si existe
+        if (Schema::hasColumn('services', 'category')) {
+            Schema::table('services', function (Blueprint $table) {
+                $table->dropColumn('category');
+            });
+        }
 
-        // Hacer category_id requerido
-        Schema::table('services', function (Blueprint $table) {
-            $table->foreignId('category_id')->nullable(false)->change();
-        });
+        // Hacer category_id requerido solo si existe y es nullable
+        if (Schema::hasColumn('services', 'category_id')) {
+            Schema::table('services', function (Blueprint $table) {
+                $table->foreignId('category_id')->nullable(false)->change();
+            });
+        }
     }
 
     /**
@@ -36,21 +42,27 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Restaurar columna category como enum
-        Schema::table('services', function (Blueprint $table) {
-            $table->enum('category', ['cut', 'beard', 'coloring', 'styling', 'treatment', 'waxing', 'facial', 'massage', 'nails', 'makeup', 'other'])->default('cut')->after('slug');
-        });
+        // Restaurar columna category como enum solo si no existe
+        if (!Schema::hasColumn('services', 'category')) {
+            Schema::table('services', function (Blueprint $table) {
+                $table->enum('category', ['cut', 'beard', 'coloring', 'styling', 'treatment', 'waxing', 'facial', 'massage', 'nails', 'makeup', 'other'])->default('cut')->after('slug');
+            });
 
-        // Migrar datos de vuelta
-        DB::table('services')
-            ->join('service_categories', 'services.category_id', '=', 'service_categories.id')
-            ->update(['services.category' => DB::raw('service_categories.slug')]);
+            // Migrar datos de vuelta solo si ambas columnas existen
+            if (Schema::hasColumn('services', 'category_id')) {
+                DB::table('services')
+                    ->join('service_categories', 'services.category_id', '=', 'service_categories.id')
+                    ->update(['services.category' => DB::raw('service_categories.slug')]);
+            }
+        }
 
-        // Eliminar columna category_id
-        Schema::table('services', function (Blueprint $table) {
-            $table->dropForeign(['category_id']);
-            $table->dropColumn('category_id');
-        });
+        // Eliminar columna category_id solo si existe
+        if (Schema::hasColumn('services', 'category_id')) {
+            Schema::table('services', function (Blueprint $table) {
+                $table->dropForeign(['category_id']);
+                $table->dropColumn('category_id');
+            });
+        }
     }
 
     /**
