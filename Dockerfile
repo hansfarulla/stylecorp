@@ -40,6 +40,7 @@ RUN apk add --no-cache \
     freetype-dev \
     oniguruma-dev \
     libzip-dev \
+    icu-dev \
     zip \
     unzip \
     git \
@@ -56,6 +57,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath \
     gd \
     zip \
+    intl \
     opcache
 
 # Instala Redis extension
