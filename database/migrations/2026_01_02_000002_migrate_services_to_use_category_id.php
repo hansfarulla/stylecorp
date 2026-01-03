@@ -28,13 +28,6 @@ return new class extends Migration
                 $table->dropColumn('category');
             });
         }
-
-        // Hacer category_id requerido solo si existe y es nullable
-        if (Schema::hasColumn('services', 'category_id')) {
-            Schema::table('services', function (Blueprint $table) {
-                $table->foreignId('category_id')->nullable(false)->change();
-            });
-        }
     }
 
     /**
