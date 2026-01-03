@@ -38,8 +38,16 @@ class EnsureUserIsBusinessRole
             setPermissionsTeamId($establishmentId);
             
             // Si tiene cualquier rol asignado en este establecimiento, permitir acceso
+            // EXCEPTO si el único rol es 'User' (rol por defecto sin permisos de gestión)
             if ($user->roles()->count() > 0) {
-                return $next($request);
+                // Verificar si tiene roles que NO sean 'User'
+                $hasPrivilegedRole = $user->roles()
+                    ->where('name', '!=', 'User')
+                    ->exists();
+                    
+                if ($hasPrivilegedRole) {
+                    return $next($request);
+                }
             }
         }
 

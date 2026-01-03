@@ -46,6 +46,17 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'activeEstablishment' => $request->user()?->activeEstablishment,
                 'establishments' => $request->user()?->establishments,
+                'canAccessBusiness' => $request->user() ? (function($user) {
+                    if ($user->role === 'super_admin') return true;
+                    if (in_array($user->role, ['owner', 'manager'])) return true;
+                    
+                    $establishmentId = $user->active_establishment_id;
+                    if ($establishmentId) {
+                        setPermissionsTeamId($establishmentId);
+                        return $user->roles()->where('name', '!=', 'User')->exists();
+                    }
+                    return false;
+                })($request->user()) : false,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

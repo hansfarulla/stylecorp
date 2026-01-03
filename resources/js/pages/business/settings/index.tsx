@@ -78,9 +78,9 @@ export default function SettingsIndex() {
                                     <Lock className="h-5 w-5 text-primary" />
                                     <CardTitle>Permisos de Equipo</CardTitle>
                                 </div>
-                                <Link href="/business/staff/permissions">
+                                <Link href="/business/roles">
                                     <Button variant="outline" size="sm">
-                                        Gestionar Permisos
+                                        Gestionar Roles
                                         <ChevronRight className="ml-1 h-4 w-4" />
                                     </Button>
                                 </Link>
