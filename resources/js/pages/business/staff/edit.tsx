@@ -51,16 +51,25 @@ interface WorkstationAssignment {
     notes: string;
 }
 
-export default function EditStaff({ staff, pivotData, workstations = [] }: { 
+interface Role {
+    id: number;
+    name: string;
+    guard_name: string;
+}
+
+export default function EditStaff({ staff, pivotData, workstations = [], roles = [], currentRole = null }: { 
     staff: Staff; 
     pivotData: PivotData | null;
     workstations?: Workstation[];
+    roles?: Role[];
+    currentRole?: Role | null;
 }) {
     const { data, setData, put, processing, errors } = useForm({
         name: staff.name || '',
         email: staff.email || '',
         phone: staff.phone || '',
         role: staff.role || 'staff',
+        role_id: currentRole?.id?.toString() || '',
         employment_type: pivotData?.employment_type || 'employee',
         commission_model: pivotData?.commission_model || 'percentage',
         commission_percentage: pivotData?.commission_percentage?.toString() || '',
@@ -249,26 +258,23 @@ export default function EditStaff({ staff, pivotData, workstations = [] }: {
                                     {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">Rol *</Label>
-                                    <Select 
-                                        value={data.role} 
-                                        onValueChange={(value) => setData('role', value)}
-                                    >
-                                        <SelectTrigger id="role">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="staff">Staff (Personal)</SelectItem>
-                                            <SelectItem value="manager">Manager (Administrador)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.role && <p className="text-sm text-destructive">{errors.role}</p>}
-                                    <p className="text-xs text-muted-foreground">
-                                        {data.role === 'manager' 
-                                            ? 'Los managers pueden administrar el establecimiento'
-                                            : 'El personal solo tiene acceso a sus propias funciones'}
-                                    </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role_id">Rol / Cargo *</Label>
+                                        <Select value={data.role_id} onValueChange={(value) => setData('role_id', value)}>
+                                            <SelectTrigger id="role_id">
+                                                <SelectValue placeholder="Seleccionar cargo" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {roles.map((role) => (
+                                                    <SelectItem key={role.id} value={role.id.toString()}>
+                                                        {role.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.role_id && <p className="text-sm text-destructive">{errors.role_id}</p>}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

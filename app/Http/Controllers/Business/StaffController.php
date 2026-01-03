@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Business;
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -19,7 +20,12 @@ class StaffController extends Controller
                 ->with('error', 'No tienes un establecimiento activo. Crea o selecciona uno.');
         }
 
+        setPermissionsTeamId($establishment->id);
+
         $staff = $establishment->users()
+            ->with(['roles' => function ($query) use ($establishment) {
+                $query->where('roles.establishment_id', $establishment->id);
+            }])
             ->withPivot(['employment_type', 'commission_model', 'commission_percentage', 'base_salary', 'booth_rental_fee', 'status', 'auto_accept_appointments'])
             ->get();
 
@@ -44,9 +50,23 @@ class StaffController extends Controller
             ->orderBy('number')
             ->get();
 
+        // Ensure default roles exist
+        $defaultRoles = ['Administrador', 'User'];
+        foreach ($defaultRoles as $roleName) {
+            Role::firstOrCreate([
+                'name' => $roleName,
+                'establishment_id' => $establishment->id,
+                'guard_name' => 'web'
+            ]);
+        }
+
+        // Obtener roles disponibles
+        $roles = Role::where('establishment_id', $establishment->id)->get();
+
         return Inertia::render('business/staff/create', [
             'establishment' => $establishment,
             'workstations' => $workstations,
+            'roles' => $roles,
         ]);
     }
 
@@ -56,7 +76,7 @@ class StaffController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:staff,manager',
+            'role_id' => 'required|exists:roles,id',
             'employment_type' => 'required|in:employee,freelancer',
             'commission_model' => 'required|in:percentage,salary_plus,booth_rental,fixed_per_service,salary_only',
             'commission_percentage' => 'nullable|numeric|min:0|max:100',
@@ -82,14 +102,14 @@ class StaffController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'password' => bcrypt('password'), // Contraseña temporal
-            'role' => $validated['role'],
+            'role' => 'staff', // Default legacy role
             'type' => 'establishment',
             'status' => 'active',
         ]);
 
         // Vincular con establecimiento
         $establishment->users()->attach($newUser->id, [
-            'role' => $validated['role'],
+            'role' => 'staff', // Default legacy role
             'employment_type' => $validated['employment_type'],
             'commission_model' => $validated['commission_model'],
             'commission_percentage' => $validated['commission_percentage'] ?? null,
@@ -112,6 +132,15 @@ class StaffController extends Controller
             }
         }
 
+        // Asignar rol de Spatie si se seleccionó
+        if (!empty($validated['role_id'])) {
+            $role = Role::find($validated['role_id']);
+            if ($role && $role->establishment_id == $establishment->id) {
+                setPermissionsTeamId($establishment->id);
+                $newUser->assignRole($role);
+            }
+        }
+
         return redirect()->route('business.staff.index')
             ->with('success', 'Empleado agregado exitosamente. Contraseña temporal: password');
     }
@@ -125,9 +154,13 @@ class StaffController extends Controller
                 ->with('error', 'No tienes un establecimiento activo');
         }
         
-        // Cargar las estaciones asignadas con datos del pivot
+        setPermissionsTeamId($establishment->id);
+        
+        // Cargar las estaciones asignadas con datos del pivot y roles
         $staff->load(['workstations' => function ($query) {
             $query->withPivot(['start_time', 'end_time', 'notes']);
+        }, 'roles' => function ($query) use ($establishment) {
+            $query->where('roles.establishment_id', $establishment->id);
         }]);
         
         $pivotData = $establishment->users()
@@ -185,10 +218,29 @@ class StaffController extends Controller
             ->orderBy('number')
             ->get();
 
+        // Ensure default roles exist
+        $defaultRoles = ['Administrador', 'User'];
+        foreach ($defaultRoles as $roleName) {
+            Role::firstOrCreate([
+                'name' => $roleName,
+                'establishment_id' => $establishment->id,
+                'guard_name' => 'web'
+            ]);
+        }
+
+        // Obtener roles disponibles
+        $roles = Role::where('establishment_id', $establishment->id)->get();
+        
+        // Obtener rol actual
+        setPermissionsTeamId($establishment->id);
+        $currentRole = $staff->roles->first();
+
         return Inertia::render('business/staff/edit', [
             'staff' => $staff,
             'pivotData' => $pivotData,
             'workstations' => $workstations,
+            'roles' => $roles,
+            'currentRole' => $currentRole,
         ]);
     }
 
@@ -198,7 +250,7 @@ class StaffController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $staff->id,
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:staff,manager',
+            'role_id' => 'required|exists:roles,id',
             // employment_type NO se puede cambiar - se omite de la validación
             'commission_model' => 'required|in:percentage,salary_plus,booth_rental,fixed_per_service,salary_only',
             'commission_percentage' => 'nullable|numeric|min:0|max:100',
@@ -217,7 +269,6 @@ class StaffController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
-            'role' => $validated['role'],
         ]);
 
         $establishment = auth()->user()->activeEstablishment;
@@ -227,7 +278,6 @@ class StaffController extends Controller
         }
         
         $establishment->users()->updateExistingPivot($staff->id, [
-            'role' => $validated['role'],
             // employment_type se mantiene sin cambios
             'commission_model' => $validated['commission_model'],
             'commission_percentage' => $validated['commission_percentage'] ?? null,
@@ -235,6 +285,15 @@ class StaffController extends Controller
             'booth_rental_fee' => $validated['booth_rental_fee'] ?? null,
             'auto_accept_appointments' => $validated['auto_accept_appointments'] ?? false,
         ]);
+
+        // Sincronizar rol de Spatie
+        if (!empty($validated['role_id'])) {
+            $role = Role::find($validated['role_id']);
+            if ($role && $role->establishment_id == $establishment->id) {
+                setPermissionsTeamId($establishment->id);
+                $staff->syncRoles([$role]);
+            }
+        }
 
         // Validate and sync workstation assignments with schedule conflict checking
         if (isset($validated['workstation_assignments']) && is_array($validated['workstation_assignments'])) {

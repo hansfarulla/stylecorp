@@ -18,12 +18,13 @@ interface Workstation {
     number?: string;
 }
 
-export default function CreateStaff({ establishment, workstations = [] }: { establishment: Establishment; workstations?: Workstation[] }) {
+export default function CreateStaff({ establishment, workstations = [], roles = [] }: { establishment: Establishment; workstations?: Workstation[]; roles?: any[] }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
         phone: '',
         role: 'staff',
+        role_id: '',
         employment_type: 'employee',
         commission_model: 'percentage',
         commission_percentage: '',
@@ -142,18 +143,24 @@ export default function CreateStaff({ establishment, workstations = [] }: { esta
                                 {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="role">Rol *</Label>
-                                <Select value={data.role} onValueChange={(value) => setData('role', value)}>
-                                    <SelectTrigger id="role">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="staff">Staff (Personal)</SelectItem>
-                                        <SelectItem value="manager">Manager (Administrador)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.role && <p className="text-sm text-destructive">{errors.role}</p>}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="role_id">Rol / Cargo *</Label>
+                                    <Select value={data.role_id} onValueChange={(value) => setData('role_id', value)}>
+                                        <SelectTrigger id="role_id">
+                                            <SelectValue placeholder="Seleccionar cargo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {roles.map((role) => (
+                                                <SelectItem key={role.id} value={role.id.toString()}>
+                                                    {role.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.role_id && <p className="text-sm text-destructive">{errors.role_id}</p>}
+                                </div>
+                            </div>
                                 <p className="text-xs text-muted-foreground">
                                     {data.role === 'manager' 
                                         ? 'Los managers pueden administrar el establecimiento'

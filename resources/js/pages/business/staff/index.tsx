@@ -23,6 +23,10 @@ interface Staff {
     name: string;
     email: string;
     phone?: string;
+    roles?: Array<{
+        id: number;
+        name: string;
+    }>;
     pivot: {
         employment_type: string;
         commission_model: string;
@@ -122,7 +126,14 @@ export default function StaffIndex({ staff }: { staff: Staff[] }) {
                                             >
                                                 <Users className="h-5 w-5 text-primary" />
                                             </motion.div>
-                                            <span className="text-lg font-bold">{member.name}</span>
+                                            <div>
+                                                <span className="text-lg font-bold block">{member.name}</span>
+                                                {member.roles && member.roles.length > 0 && (
+                                                    <Badge variant="secondary" className="text-[10px] h-5 px-2 mt-1">
+                                                        {member.roles[0].name}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                             <Button

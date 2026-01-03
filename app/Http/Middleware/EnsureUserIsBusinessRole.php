@@ -31,17 +31,14 @@ class EnsureUserIsBusinessRole
             return $next($request);
         }
 
-        // Para otros roles (staff, freelancer), verificar si tienen permisos granulares
+        // Verificar acceso mediante roles de Spatie (nuevo sistema)
         $establishmentId = $user->active_establishment_id;
         
         if ($establishmentId) {
-            // Verificar si tiene al menos un permiso granular asignado para este establecimiento
-            $hasAnyBusinessPermission = $user->permissions()
-                ->where('permission_user.establishment_id', $establishmentId)
-                ->where('permission_user.granted', true)
-                ->exists();
-
-            if ($hasAnyBusinessPermission) {
+            setPermissionsTeamId($establishmentId);
+            
+            // Si tiene cualquier rol asignado en este establecimiento, permitir acceso
+            if ($user->roles()->count() > 0) {
                 return $next($request);
             }
         }

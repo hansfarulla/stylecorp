@@ -12,6 +12,10 @@ interface Staff {
     email: string;
     phone?: string;
     role: string;
+    roles?: Array<{
+        id: number;
+        name: string;
+    }>;
     status: string;
     created_at: string;
     workstations?: Array<{
@@ -143,7 +147,7 @@ export default function StaffShow({ staff, pivotData, appointments = [], stats }
                                         {pivotData.status === 'active' ? 'Activo' : 'Inactivo'}
                                     </GlowingBadge>
                                     <span className="text-sm text-muted-foreground">
-                                        {roleLabels[staff.role]} • {employmentLabels[pivotData.employment_type] || pivotData.employment_type}
+                                        {staff.roles && staff.roles.length > 0 ? staff.roles[0].name : roleLabels[staff.role]} • {employmentLabels[pivotData.employment_type] || pivotData.employment_type}
                                     </span>
                                 </>
                             ) : (

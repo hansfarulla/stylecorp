@@ -85,6 +85,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard para negocios (owners y managers)
     Route::prefix('business')->name('business.')->middleware('business')->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('business.dashboard');
+        });
         Route::get('dashboard', [\App\Http\Controllers\Business\DashboardController::class, 'index'])->name('dashboard');
         
         // Cambiar establecimiento activo
@@ -107,10 +110,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('applications/{application}/approve', [\App\Http\Controllers\Business\StaffApplicationController::class, 'approve'])->name('applications.approve');
         Route::post('applications/{application}/reject', [\App\Http\Controllers\Business\StaffApplicationController::class, 'reject'])->name('applications.reject');
         
-        // Personal - Rutas de permisos ANTES del resource
-        Route::get('staff/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'index'])->name('staff.permissions.index');
-        Route::get('staff/{staff}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'edit'])->name('staff.permissions.edit')->where('staff', '[0-9]+');
-        Route::put('staff/{staff}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'update'])->name('staff.permissions.update')->where('staff', '[0-9]+');
+        // Roles y Permisos
+        Route::resource('roles', \App\Http\Controllers\Business\RoleController::class);
         
         // Personal - Resource routes
         Route::resource('staff', \App\Http\Controllers\Business\StaffController::class);

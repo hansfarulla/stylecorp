@@ -24,7 +24,8 @@ import {
     FileText,
     Briefcase,
     UserCheck,
-    FolderKanban
+    FolderKanban,
+    ShieldCheck
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -62,6 +63,11 @@ export function AppSidebar() {
             title: 'Personal',
             href: '/business/staff',
             icon: Users,
+        },
+        {
+            title: 'Roles y Permisos',
+            href: '/business/roles',
+            icon: ShieldCheck,
         },
         {
             title: 'Citas',
