@@ -96,7 +96,31 @@ class Establishment extends Model
 		'verified_at' => 'datetime',
 		'rating' => 'float',
 		'total_reviews' => 'int',
-		'total_bookings' => 'int'
+		'total_bookings' => 'int',
+		'supported_languages' => 'array',
+		'gallery' => 'array',
+		'corporate_colors' => 'array',
+		'business_hours' => 'array',
+		'home_service_zones' => 'array',
+		'payment_methods' => 'array',
+		'notification_settings' => 'array',
+		'certifications' => 'array'
+	];
+
+	protected $attributes = [
+		'supported_languages' => '["es"]',
+		'accepts_walk_ins' => true,
+		'offers_home_service' => false,
+		'min_booking_hours' => 2,
+		'cancellation_hours' => 24,
+		'cancellation_fee' => 0,
+		'no_show_fee' => 0,
+		'payment_flow' => 'centralized',
+		'status' => 'pending',
+		'is_verified' => false,
+		'rating' => 0,
+		'total_reviews' => 0,
+		'total_bookings' => 0
 	];
 
 	protected $fillable = [

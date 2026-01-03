@@ -68,7 +68,7 @@ return new class extends Migration
             
             // Notificaciones
             $table->json('notification_settings')->nullable();
-            $table->json('supported_languages')->nullable()->default('["es"]');
+            $table->json('supported_languages')->nullable();
             
             // Estado y verificación
             $table->enum('status', ['pending', 'active', 'suspended', 'inactive'])->default('pending');
