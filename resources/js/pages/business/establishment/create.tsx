@@ -155,9 +155,11 @@ export default function CreateEstablishment({ managers = [] }: { managers?: Mana
         <AppLayout>
             <Head title="Crear Establecimiento" />
             
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="p-4 max-w-4xl mx-auto space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Crear Nuevo Establecimiento</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        Crear Nuevo Establecimiento
+                    </h1>
                     <p className="text-muted-foreground mt-2">
                         Complete la información de su establecimiento
                     </p>
@@ -288,13 +290,13 @@ export default function CreateEstablishment({ managers = [] }: { managers?: Mana
                                         Necesarias para que tu establecimiento aparezca en el mapa
                                     </p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col md:flex-row gap-2">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={getCurrentLocation}
-                                        className="flex-1"
+                                        className="flex-1 h-11"
                                     >
                                         📍 Obtener mi ubicación actual
                                     </Button>
@@ -303,7 +305,7 @@ export default function CreateEstablishment({ managers = [] }: { managers?: Mana
                                         variant="outline"
                                         size="sm"
                                         onClick={openMapSelector}
-                                        className="flex-1"
+                                        className="flex-1 h-11"
                                     >
                                         🗺️ Seleccionar en el mapa
                                     </Button>
@@ -440,41 +442,55 @@ export default function CreateEstablishment({ managers = [] }: { managers?: Mana
                                 Define los días y horarios de operación
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-3">
                             {Object.keys(dayLabels).map((day) => {
                                 const key = day as keyof CreateEstablishmentForm['business_hours'];
                                 const isClosed = data.business_hours[key] === null || data.business_hours[key] === undefined;
                                 return (
-                                    <div key={day} className="grid grid-cols-[120px_1fr_100px] gap-4 items-center">
-                                        <Label>{dayLabels[day]}</Label>
+                                    <div key={day} className="flex flex-col md:grid md:grid-cols-[120px_1fr_100px] gap-3 md:gap-4 md:items-center border-b pb-3 md:border-0 md:pb-0">
+                                        <div className="flex items-center justify-between md:block">
+                                            <Label className="font-semibold">{dayLabels[day]}</Label>
+                                            <div className="flex items-center gap-2 md:hidden">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`closed_${day}`}
+                                                    checked={isClosed}
+                                                    onChange={() => toggleDayClosed(day)}
+                                                    className="h-5 w-5"
+                                                />
+                                                <Label htmlFor={`closed_${day}`} className="text-sm">Cerrado</Label>
+                                            </div>
+                                        </div>
                                         {!isClosed ? (
                                             <div className="flex items-center gap-2">
                                                 <Input
                                                     type="time"
                                                     value={data.business_hours[key]?.[0] || '09:00'}
                                                     onChange={(e) => handleHourChange(day, 0, e.target.value)}
+                                                    className="h-11"
                                                 />
-                                                <span>-</span>
+                                                <span className="text-muted-foreground">-</span>
                                                 <Input
                                                     type="time"
                                                     value={data.business_hours[key]?.[1] || '18:00'}
                                                     onChange={(e) => handleHourChange(day, 1, e.target.value)}
+                                                    className="h-11"
                                                 />
                                             </div>
                                         ) : (
-                                            <div className="text-muted-foreground italic">
+                                            <div className="text-muted-foreground italic text-sm md:text-base">
                                                 Cerrado
                                             </div>
                                         )}
-                                        <div className="flex items-center gap-2">
+                                        <div className="hidden md:flex items-center gap-2">
                                             <input
                                                 type="checkbox"
-                                                id={`closed_${day}`}
+                                                id={`closed_${day}_desktop`}
                                                 checked={isClosed}
                                                 onChange={() => toggleDayClosed(day)}
                                                 className="h-4 w-4"
                                             />
-                                            <Label htmlFor={`closed_${day}`} className="text-sm">Cerrado</Label>
+                                            <Label htmlFor={`closed_${day}_desktop`} className="text-sm">Cerrado</Label>
                                         </div>
                                     </div>
                                 );
@@ -491,27 +507,27 @@ export default function CreateEstablishment({ managers = [] }: { managers?: Mana
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center space-x-2">
+                            <label htmlFor="accepts_walk_ins" className="flex items-center space-x-3 cursor-pointer py-2">
                                 <input
                                     type="checkbox"
                                     id="accepts_walk_ins"
                                     checked={data.accepts_walk_ins}
                                     onChange={(e) => setData('accepts_walk_ins', e.target.checked)}
-                                    className="h-4 w-4"
+                                    className="h-5 w-5"
                                 />
-                                <Label htmlFor="accepts_walk_ins">Acepta clientes sin cita previa (Walk-ins)</Label>
-                            </div>
+                                <span className="text-sm">Acepta clientes sin cita previa (Walk-ins)</span>
+                            </label>
 
-                            <div className="flex items-center space-x-2">
+                            <label htmlFor="offers_home_service" className="flex items-center space-x-3 cursor-pointer py-2">
                                 <input
                                     type="checkbox"
                                     id="offers_home_service"
                                     checked={data.offers_home_service}
                                     onChange={(e) => setData('offers_home_service', e.target.checked)}
-                                    className="h-4 w-4"
+                                    className="h-5 w-5"
                                 />
-                                <Label htmlFor="offers_home_service">Ofrece servicio a domicilio</Label>
-                            </div>
+                                <span className="text-sm">Ofrece servicio a domicilio</span>
+                            </label>
 
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -542,14 +558,19 @@ export default function CreateEstablishment({ managers = [] }: { managers?: Mana
                     </Card>
 
                     {/* Botones de Acción */}
-                    <div className="flex gap-4">
-                        <Button type="submit" disabled={processing}>
+                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 sticky bottom-0 md:static bg-background/95 backdrop-blur-sm md:bg-transparent p-4 md:p-0 -mx-4 md:mx-0 border-t md:border-0">
+                        <Button 
+                            type="submit" 
+                            disabled={processing}
+                            className="h-11 shadow-lg hover:shadow-xl transition-all"
+                        >
                             {processing ? 'Guardando...' : 'Crear Establecimiento'}
                         </Button>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => window.history.back()}
+                            className="h-11"
                         >
                             Cancelar
                         </Button>
