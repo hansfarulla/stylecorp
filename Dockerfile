@@ -9,22 +9,35 @@ RUN npm ci --only=production=false
 FROM composer:2 AS composer-builder
 WORKDIR /app
 
-# Copia composer files y node_modules
-COPY composer.json composer.lock ./
-COPY --from=node-deps /app/node_modules ./node_modules
-COPY package*.json ./
+# Instala Node.js para Vite
+RUN apk add --no-cache nodejs npm
 
-# Instala dependencias PHP
+# Copia archivos de dependencias primero (mejor caché)
+COPY composer.json composer.lock ./
+COPY package*.json ./
+COPY --from=node-deps /app/node_modules ./node_modules
+
+# Instala dependencias PHP (se cachea si composer.json no cambia)
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# Copia el resto del código
-COPY . .
+# Copia archivos de configuración que cambian poco
+COPY vite.config.ts tsconfig.json tailwind.config.ts postcss.config.js components.json ./
+COPY .env.docker ./.env
+
+# Copia código fuente (esto invalida caché solo si el código cambia)
+COPY app ./app
+COPY bootstrap ./bootstrap
+COPY config ./config
+COPY database ./database
+COPY public ./public
+COPY resources ./resources
+COPY routes ./routes
+COPY storage ./storage
 
 # Genera autoloader optimizado
 RUN composer dump-autoload --optimize --classmap-authoritative
 
-# Build de assets (Vite) usando PHP disponible
-RUN apk add --no-cache nodejs npm
+# Build de assets (solo se ejecuta si resources/ o vite.config cambió)
 RUN npm run build
 
 # Etapa final: solo PHP-FPM, Nginx, Supervisor
