@@ -47,16 +47,16 @@ export function AppSidebar() {
             href: '/business/workstations',
             icon: Briefcase,
         },
-        {
-            title: 'Ofertas',
-            href: '/business/offers',
-            icon: FileText,
-        },
-        {
-            title: 'Solicitudes',
-            href: '/business/applications',
-            icon: UserCheck,
-        },
+        // {
+        //     title: 'Ofertas',
+        //     href: '/business/offers',
+        //     icon: FileText,
+        // },
+        // {
+        //     title: 'Solicitudes',
+        //     href: '/business/applications',
+        //     icon: UserCheck,
+        // },
         {
             title: 'Personal',
             href: '/business/staff',
