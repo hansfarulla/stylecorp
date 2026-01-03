@@ -1,216 +1,277 @@
-import { Head } from '@inertiajs/react';
-import { Calendar, DollarSign, TrendingUp, Clock, Star, Users, Award } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar, DollarSign, TrendingUp, Clock, Star, Users, Award, Eye, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { GlowingBadge } from '@/components/ui/glowing-badge';
 
-export default function ProfessionalDashboard() {
-    const todayAppointments = [
-        { id: 1, client: 'Juan Pérez', service: 'Corte + Barba', time: '14:00', price: 15000, status: 'confirmed' },
-        { id: 2, client: 'Carlos Mora', service: 'Corte Fade', time: '15:30', price: 10000, status: 'confirmed' },
-        { id: 3, client: 'Luis Castro', service: 'Diseño Barba', time: '17:00', price: 8000, status: 'pending' },
-    ];
+interface Appointment {
+    id: number;
+    booking_code: string;
+    client: string;
+    service: string;
+    time: string;
+    price: number;
+    status: string;
+    location_type: string;
+}
 
-    const stats = {
-        todayEarnings: 45000,
-        weekEarnings: 180000,
-        monthEarnings: 720000,
-        todayAppointments: 3,
-        weekAppointments: 18,
-        rating: 4.9,
-        reviews: 156,
-    };
+interface Review {
+    id: number;
+    client: string;
+    rating: number;
+    comment: string;
+    date: string;
+}
 
-    const recentReviews = [
-        { id: 1, client: 'Juan Pérez', rating: 5, comment: 'Excelente servicio, muy profesional', date: '2025-12-25' },
-        { id: 2, client: 'María González', rating: 5, comment: 'Siempre impecable', date: '2025-12-24' },
-    ];
+interface Stats {
+    todayEarnings: number;
+    weekEarnings: number;
+    monthEarnings: number;
+    todayAppointments: number;
+    weekAppointments: number;
+    rating: number;
+    reviews: number;
+}
 
+interface Props {
+    stats: Stats;
+    todayAppointments: Appointment[];
+    upcomingAppointments?: Appointment[];
+    recentReviews: Review[];
+}
+
+const statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    confirmed: 'Confirmada',
+    in_progress: 'En progreso',
+    completed: 'Completada',
+    cancelled_by_customer: 'Cancelada',
+    cancelled_by_establishment: 'Cancelada',
+    no_show: 'No asistió',
+};
+
+const badgeVariants: Record<string, "default" | "success" | "warning" | "error"> = {
+    pending: 'warning',
+    confirmed: 'success',
+    in_progress: 'default',
+    completed: 'success',
+    cancelled_by_customer: 'error',
+    cancelled_by_establishment: 'error',
+    no_show: 'error',
+};
+
+export default function ProfessionalDashboard({ stats, todayAppointments, upcomingAppointments = [], recentReviews }: Props) {
     return (
-        <>
+        <AppLayout>
             <Head title="Dashboard Profesional" />
             
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Profesional</h1>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {new Date().toLocaleDateString('es-CR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                            </p>
-                        </div>
-                    </div>
-                </header>
+            <div className="space-y-6 p-4">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        Dashboard Profesional
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        {new Date().toLocaleDateString('es-CR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                </motion.div>
 
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Hoy</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                                        ₡{stats.todayEarnings.toLocaleString()}
-                                    </p>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                        <Card className="hover:shadow-xl transition-all duration-300 border-primary/20">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Hoy</CardTitle>
+                                <DollarSign className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0 }).format(stats.todayEarnings)}
                                 </div>
-                                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                                    <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
-                                </div>
-                            </div>
-                        </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {stats.todayAppointments} {stats.todayAppointments === 1 ? 'cita' : 'citas'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Esta semana</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                                        ₡{stats.weekEarnings.toLocaleString()}
-                                    </p>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                        <Card className="hover:shadow-xl transition-all duration-300 border-primary/20">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Esta Semana</CardTitle>
+                                <TrendingUp className="h-4 w-4 text-blue-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0 }).format(stats.weekEarnings)}
                                 </div>
-                                <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                                    <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                </div>
-                            </div>
-                        </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {stats.weekAppointments} {stats.weekAppointments === 1 ? 'cita' : 'citas'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Citas hoy</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                                        {stats.todayAppointments}
-                                    </p>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                        <Card className="hover:shadow-xl transition-all duration-300 border-primary/20">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Este Mes</CardTitle>
+                                <Calendar className="h-4 w-4 text-purple-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0 }).format(stats.monthEarnings)}
                                 </div>
-                                <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                                    <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                                </div>
-                            </div>
-                        </div>
+                                <Link href="/professional/earnings" className="text-xs text-primary hover:underline mt-1 inline-block">
+                                    Ver detalles
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Calificación</p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.rating}</p>
-                                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                                    </div>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                        <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-yellow-500/10 to-orange-500/10">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Calificación</CardTitle>
+                                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold flex items-center gap-2">
+                                    {stats.rating.toFixed(1)}
+                                    <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                                 </div>
-                                <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                                    <Award className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {stats.reviews} {stats.reviews === 1 ? 'reseña' : 'reseñas'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Agenda del día */}
-                        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-gray-900 dark:text-white" />
-                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Agenda de hoy</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Agenda del día */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="lg:col-span-2"
+                    >
+                        <Card className="border-primary/20">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Calendar className="h-5 w-5" />
+                                        Agenda de Hoy
+                                    </CardTitle>
+                                    <Link href="/professional/appointments">
+                                        <Button variant="outline" size="sm">
+                                            Ver todas
+                                            <ChevronRight className="ml-1 h-4 w-4" />
+                                        </Button>
+                                    </Link>
                                 </div>
-                                <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                    Ver calendario
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                {todayAppointments.map((apt) => (
-                                    <div key={apt.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex flex-col items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                                <span className="text-xs text-gray-600 dark:text-gray-400">
-                                                    {apt.time.split(':')[0]}
-                                                </span>
-                                                <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                                    {apt.time.split(':')[1]}
-                                                </span>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {todayAppointments.length > 0 ? (
+                                    todayAppointments.map((apt) => (
+                                        <div
+                                            key={apt.id}
+                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {apt.time.split(':')[0]}
+                                                    </span>
+                                                    <span className="text-lg font-bold">
+                                                        {apt.time.split(':')[1]}
+                                                    </span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className="font-semibold">{apt.client}</h3>
+                                                    <p className="text-sm text-muted-foreground">{apt.service}</p>
+                                                    <GlowingBadge variant={badgeVariants[apt.status]} className="mt-1">
+                                                        {statusLabels[apt.status]}
+                                                    </GlowingBadge>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h3 className="font-semibold text-gray-900 dark:text-white">{apt.client}</h3>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">{apt.service}</p>
-                                                <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded ${
-                                                    apt.status === 'confirmed' 
-                                                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                                                        : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'
-                                                }`}>
-                                                    {apt.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}
-                                                </span>
+                                            <div className="text-right">
+                                                <p className="text-lg font-bold">
+                                                    {new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0 }).format(apt.price)}
+                                                </p>
+                                                <Link href={`/professional/appointments/${apt.id}`}>
+                                                    <Button variant="ghost" size="sm" className="mt-1">
+                                                        <Eye className="h-4 w-4 mr-1" />
+                                                        Ver
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-lg font-bold text-gray-900 dark:text-white">
-                                                ₡{apt.price.toLocaleString()}
-                                            </p>
-                                            <button className="mt-1 text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                                Gestionar
-                                            </button>
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-12 text-muted-foreground">
+                                        <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                        <p>No tienes citas programadas para hoy</p>
                                     </div>
-                                ))}
-                            </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                            {todayAppointments.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                                    <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                    <p>No tienes citas programadas para hoy</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Sidebar */}
-                        <div className="space-y-6">
-                            {/* Reseñas recientes */}
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reseñas recientes</h2>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {recentReviews.map((review) => (
-                                        <div key={review.id} className="border-b border-gray-200 dark:border-gray-700 last:border-0 pb-4 last:pb-0">
+                    {/* Reseñas recientes */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                    >
+                        <Card className="border-primary/20">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                                    Reseñas Recientes
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {recentReviews.length > 0 ? (
+                                    recentReviews.map((review) => (
+                                        <div key={review.id} className="border-b last:border-0 pb-4 last:pb-0">
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className="font-medium text-sm text-gray-900 dark:text-white">{review.client}</span>
+                                                <span className="font-medium text-sm">{review.client}</span>
                                                 <div className="flex items-center gap-0.5">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 dark:text-gray-600'}`} />
+                                                        <Star
+                                                            key={i}
+                                                            className={`w-3 h-3 ${
+                                                                i < review.rating
+                                                                    ? 'text-yellow-500 fill-yellow-500'
+                                                                    : 'text-muted'
+                                                            }`}
+                                                        />
                                                     ))}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{review.comment}</p>
-                                            <span className="text-xs text-gray-500 dark:text-gray-500 mt-1 block">
+                                            <p className="text-sm text-muted-foreground">{review.comment}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
                                                 {new Date(review.date).toLocaleDateString('es-CR')}
-                                            </span>
+                                            </p>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Resumen del mes */}
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Este mes</h2>
-                                
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Ingresos totales</span>
-                                        <span className="text-lg font-semibold text-green-600 dark:text-green-400">
-                                            ₡{stats.monthEarnings.toLocaleString()}
-                                        </span>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Star className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">Aún no tienes reseñas</p>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Total clientes</span>
-                                        <span className="text-lg font-semibold text-gray-900 dark:text-white">48</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Nuevos seguidores</span>
-                                        <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">+12</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </main>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                </div>
             </div>
-        </>
+        </AppLayout>
     );
 }

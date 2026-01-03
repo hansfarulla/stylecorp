@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'business' => \App\Http\Middleware\EnsureUserIsBusinessRole::class,
+            'professional' => \App\Http\Middleware\EnsureUserIsProfessional::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -61,9 +61,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('customer.dashboard');
 
     // Dashboard para profesionales (staff y freelancers)
-    Route::get('professional/dashboard', function () {
-        return Inertia::render('professional/dashboard');
-    })->name('professional.dashboard');
+    Route::prefix('professional')->name('professional.')->middleware('professional')->group(function () {
+        Route::get('dashboard', [\App\Http\Controllers\Professional\DashboardController::class, 'index'])->name('dashboard');
+        
+        // Citas
+        Route::get('appointments', [\App\Http\Controllers\Professional\AppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('appointments/{appointment}', [\App\Http\Controllers\Professional\AppointmentController::class, 'show'])->name('appointments.show');
+        Route::patch('appointments/{appointment}/status', [\App\Http\Controllers\Professional\AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
+        
+        // Horario
+        Route::get('schedule', [\App\Http\Controllers\Professional\ScheduleController::class, 'index'])->name('schedule.index');
+        Route::post('schedule', [\App\Http\Controllers\Professional\ScheduleController::class, 'update'])->name('schedule.update');
+        
+        // Ganancias
+        Route::get('earnings', [\App\Http\Controllers\Professional\EarningsController::class, 'index'])->name('earnings.index');
+        
+        // Perfil
+        Route::get('profile', function () {
+            return \Inertia\Inertia::render('professional/profile/index');
+        })->name('profile.index');
+    });
+
 
     // Dashboard para negocios (owners y managers)
     Route::prefix('business')->name('business.')->middleware('business')->group(function () {
