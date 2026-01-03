@@ -4,6 +4,17 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\DB;
+
+// Health check endpoint para Docker/Kubernetes
+Route::get('/health', function () {
+    try {
+        DB::connection()->getPdo();
+        return response()->json(['status' => 'ok'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 503);
+    }
+});
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
