@@ -12,6 +12,42 @@ use Inertia\Inertia;
 class StaffPermissionsController extends Controller
 {
     /**
+     * Mostrar listado de staff para gestionar permisos
+     */
+    public function index(Request $request)
+    {
+        $establishment = Establishment::findOrFail($request->user()->active_establishment_id);
+
+        // Solo owners pueden gestionar permisos
+        if ($request->user()->role !== 'owner' && $request->user()->role !== 'super_admin') {
+            abort(403, 'Solo los dueños pueden gestionar permisos.');
+        }
+
+        // Obtener staff del establecimiento (excluyendo owners y super_admins)
+        $staff = $establishment->users()
+            ->whereNotIn('role', ['owner', 'super_admin'])
+            ->with(['permissions' => function ($query) use ($establishment) {
+                $query->where('permission_user.establishment_id', $establishment->id)
+                      ->where('permission_user.granted', true);
+            }])
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'permissions_count' => $user->permissions->count(),
+                ];
+            });
+
+        return Inertia::render('business/staff/permissions-index', [
+            'staff' => $staff,
+            'establishment' => $establishment,
+        ]);
+    }
+
+    /**
      * Mostrar formulario de permisos granulares para un empleado
      */
     public function edit(Request $request, User $user)
@@ -82,19 +118,16 @@ class StaffPermissionsController extends Controller
             ->detach();
 
         // Asignar nuevos permisos
-        $permissionsData = [];
         foreach ($validated['permissions'] as $permissionId) {
-            $permissionsData[$permissionId] = [
-                'establishment_id' => $establishment->id,
+            $user->permissions()->attach($permissionId, [
                 'granted' => true,
                 'granted_by' => $request->user()->id,
-            ];
+                'establishment_id' => $establishment->id,
+            ]);
         }
 
-        $user->permissions()->attach($permissionsData);
-
         return redirect()
-            ->route('business.staff.index')
-            ->with('success', 'Permisos actualizados correctamente.');
+            ->route('business.staff.permissions.edit', $user)
+            ->with('success', 'Permisos actualizados exitosamente.');
     }
 }

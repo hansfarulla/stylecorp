@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Personal
         Route::resource('staff', \App\Http\Controllers\Business\StaffController::class);
+        Route::get('staff/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'index'])->name('staff.permissions.index');
         Route::get('staff/{user}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'edit'])->name('staff.permissions.edit');
         Route::put('staff/{user}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'update'])->name('staff.permissions.update');
         

@@ -255,6 +255,24 @@ export default function AppointmentsIndex({ appointments, services = [], profess
     const [calendarView, setCalendarView] = useRemember('dayGridMonth', 'AppointmentsIndex:calendarView');
     const [calendarDate, setCalendarDate] = useRemember<string | null>(null, 'AppointmentsIndex:calendarDate');
     
+    // Swipe gesture controls
+    const swipeContainerRef = useRef<HTMLDivElement>(null);
+    
+    const handleSwipe = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        if (!isMobile || !calendarRef.current) return;
+        
+        const threshold = 80;
+        const calendarApi = calendarRef.current.getApi();
+        
+        if (info.offset.x > threshold) {
+            // Swipe right -> previous month
+            calendarApi.prev();
+        } else if (info.offset.x < -threshold) {
+            // Swipe left -> next month
+            calendarApi.next();
+        }
+    };
+    
     // Create Modal State
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
@@ -779,34 +797,44 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         }
                                         .fc-header-toolbar {
                                             display: grid !important;
-                                            grid-template-columns: 1fr auto;
-                                            grid-template-rows: auto auto;
-                                            gap: 0.75rem;
+                                            grid-template-columns: 1fr 2fr 1fr;
+                                            grid-template-rows: auto;
+                                            gap: 0.5rem;
                                             width: 100%;
+                                            align-items: center;
+                                        }
+                                        .fc-header-toolbar .fc-toolbar-chunk {
+                                            display: flex;
+                                            align-items: center;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk:nth-child(1) {
                                             grid-column: 1;
-                                            grid-row: 2;
                                             justify-self: start;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
-                                            grid-column: 1 / -1;
-                                            grid-row: 1;
+                                            grid-column: 2;
                                             justify-self: center;
                                         }
                                         .fc-header-toolbar .fc-toolbar-chunk:nth-child(3) {
-                                            grid-column: 2;
-                                            grid-row: 2;
+                                            grid-column: 3;
                                             justify-self: end;
                                         }
                                         .fc .fc-toolbar-title {
-                                            font-size: 1rem;
+                                            font-size: 1.125rem;
+                                            font-weight: 700;
                                             text-align: center;
                                             width: 100%;
+                                            line-height: 1;
+                                            padding: 0;
+                                            margin: 0;
                                         }
                                         .fc .fc-button {
                                             padding: 0.4rem 0.6rem;
                                             font-size: 0.8rem;
+                                            line-height: 1;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
                                         }
                                         .fc .fc-daygrid-day-frame {
                                             min-height: 80px;
@@ -821,6 +849,15 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         }
                                     }
                                 `}</style>
+                                <motion.div
+                                    ref={swipeContainerRef}
+                                    drag={isMobile ? "x" : false}
+                                    dragConstraints={{ left: 0, right: 0 }}
+                                    dragElastic={0.2}
+                                    onDragEnd={handleSwipe}
+                                    style={{ touchAction: 'pan-y' }}
+                                    className="select-none"
+                                >
                                 <FullCalendar
                                     ref={calendarRef}
                                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
@@ -861,9 +898,9 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         }
                                     }}
                                     headerToolbar={isMobile ? {
-                                        left: 'prev,next',
+                                        left: 'today',
                                         center: 'title',
-                                        right: 'today' // Balance the layout
+                                        right: '' // Sin botones de navegación, usar swipe
                                     } : {
                                         left: 'prev,next today',
                                         center: 'title',
@@ -925,6 +962,14 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                     selectable={true}
                                     selectMirror={true}
                                 />
+                                </motion.div>
+                                {isMobile && (
+                                    <div className="text-center mt-2 text-xs text-muted-foreground flex items-center justify-center gap-2">
+                                        <span>←</span>
+                                        <span>Desliza para cambiar de mes</span>
+                                        <span>→</span>
+                                    </div>
+                                )}
                                 
                                 {/* Mobile View Switcher */}
                                 {isMobile && (
