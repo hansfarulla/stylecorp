@@ -57,6 +57,14 @@ class HandleInertiaRequests extends Middleware
                     }
                     return false;
                 })($request->user()) : false,
+                'permissions' => $request->user() ? (function($user) {
+                    $establishmentId = $user->active_establishment_id;
+                    if ($establishmentId) {
+                        setPermissionsTeamId($establishmentId);
+                        return $user->getAllPermissions()->pluck('name');
+                    }
+                    return [];
+                })($request->user()) : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
