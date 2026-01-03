@@ -66,7 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('professional.dashboard');
 
     // Dashboard para negocios (owners y managers)
-    Route::prefix('business')->name('business.')->group(function () {
+    Route::prefix('business')->name('business.')->middleware('business')->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Business\DashboardController::class, 'index'])->name('dashboard');
         
         // Cambiar establecimiento activo
@@ -91,6 +91,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Personal
         Route::resource('staff', \App\Http\Controllers\Business\StaffController::class);
+        Route::get('staff/{user}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'edit'])->name('staff.permissions.edit');
+        Route::put('staff/{user}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'update'])->name('staff.permissions.update');
         
         // Citas
         Route::patch('appointments/{appointment}/status', [\App\Http\Controllers\Business\AppointmentController::class, 'updateStatus'])->name('appointments.update-status');

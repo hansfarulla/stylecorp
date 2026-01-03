@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\UpdateUserLastLogin::class,
             \App\Http\Middleware\SetActiveEstablishment::class,
         ]);
+
+        $middleware->alias([
+            'permission' => \App\Http\Middleware\CheckPermission::class,
+            'business' => \App\Http\Middleware\EnsureUserIsBusinessRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

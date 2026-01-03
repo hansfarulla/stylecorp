@@ -189,6 +189,142 @@ class User extends Authenticatable
 	}
 
 	/**
+	 * Permisos personalizados asignados al usuario
+	 */
+	public function permissions()
+	{
+		return $this->belongsToMany(Permission::class, 'permission_user')
+			->withPivot(['establishment_id', 'granted', 'granted_by'])
+			->withTimestamps();
+	}
+
+	/**
+	 * Verificar si el usuario tiene un permiso específico
+	 */
+	public function hasPermission(string $permission, ?int $establishmentId = null): bool
+	{
+		// Super Admin tiene todos los permisos
+		if ($this->role === 'super_admin') {
+			return true;
+		}
+
+		// Owner tiene todos los permisos de su establecimiento
+		if ($this->role === 'owner' && $establishmentId) {
+			$ownsEstablishment = $this->establishments()
+				->where('establishments.id', $establishmentId)
+				->exists();
+			
+			if ($ownsEstablishment) {
+				return true;
+			}
+		}
+
+		// Verificar permisos por rol (de UserRole enum)
+		$rolePermissions = \App\Enums\UserRole::from($this->role)->permissions();
+		if (in_array('*', $rolePermissions) || in_array($permission, $rolePermissions)) {
+			return true;
+		}
+
+		// Verificar permisos granulares asignados específicamente
+		$query = $this->permissions()->where('name', $permission);
+		
+		if ($establishmentId) {
+			$query->where('permission_user.establishment_id', $establishmentId);
+		}
+		
+		$customPermission = $query->first();
+		
+		if ($customPermission) {
+			return (bool) $customPermission->pivot->granted;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Verificar si tiene alguno de los permisos especificados
+	 */
+	public function hasAnyPermission(array $permissions, ?int $establishmentId = null): bool
+	{
+		foreach ($permissions as $permission) {
+			if ($this->hasPermission($permission, $establishmentId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Verificar si tiene todos los permisos especificados
+	 */
+	public function hasAllPermissions(array $permissions, ?int $establishmentId = null): bool
+	{
+		foreach ($permissions as $permission) {
+			if (!$this->hasPermission($permission, $establishmentId)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Asignar un permiso granular al usuario
+	 */
+	public function grantPermission(string $permissionName, ?int $establishmentId = null, ?int $grantedBy = null): void
+	{
+		$permission = Permission::where('name', $permissionName)->firstOrFail();
+		
+		$this->permissions()->syncWithoutDetaching([
+			$permission->id => [
+				'establishment_id' => $establishmentId,
+				'granted' => true,
+				'granted_by' => $grantedBy,
+			]
+		]);
+	}
+
+	/**
+	 * Revocar un permiso granular del usuario
+	 */
+	public function revokePermission(string $permissionName, ?int $establishmentId = null): void
+	{
+		$permission = Permission::where('name', $permissionName)->first();
+		
+		if (!$permission) {
+			return;
+		}
+
+		if ($establishmentId) {
+			$this->permissions()
+				->wherePivot('establishment_id', $establishmentId)
+				->detach($permission->id);
+		} else {
+			$this->permissions()->detach($permission->id);
+		}
+	}
+
+	/**
+	 * Obtener todos los permisos efectivos del usuario (rol + granulares)
+	 */
+	public function getAllPermissions(?int $establishmentId = null): array
+	{
+		// Permisos del rol
+		$rolePermissions = \App\Enums\UserRole::from($this->role)->permissions();
+		
+		// Permisos granulares
+		$query = $this->permissions()->where('permission_user.granted', true);
+		
+		if ($establishmentId) {
+			$query->where('permission_user.establishment_id', $establishmentId);
+		}
+		
+		$customPermissions = $query->pluck('name')->toArray();
+		
+		// Combinar ambos
+		return array_unique(array_merge($rolePermissions, $customPermissions));
+	}
+
+	/**
 	 * Update the user's last login timestamp
 	 */
 	public function updateLastLogin(): void
