@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Business;
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,10 +44,24 @@ class ServiceController extends Controller
         $establishment = Establishment::where('owner_id', $user->id)->first();
         
         $professionals = $establishment->users;
+        
+        $categories = ServiceCategory::where('establishment_id', $establishment->id)
+            ->active()
+            ->ordered()
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'value' => (string) $category->id,
+                    'label' => $category->name,
+                    'icon' => $category->icon,
+                    'color' => $category->color,
+                ];
+            });
 
         return Inertia::render('business/services/create', [
             'professionals' => $professionals,
             'establishment' => $establishment,
+            'categories' => $categories,
         ]);
     }
 
@@ -57,7 +72,7 @@ class ServiceController extends Controller
             'professional_ids.*' => 'exists:users,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|in:cut,beard,coloring,styling,treatment,waxing,facial,massage,nails,makeup,other',
+            'category_id' => 'required|exists:service_categories,id',
             'base_price' => 'required|numeric|min:0',
             'duration_minutes' => 'nullable|integer|min:1',
             'available_online' => 'boolean',

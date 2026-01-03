@@ -102,6 +102,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Servicios
         Route::resource('services', \App\Http\Controllers\Business\ServiceController::class);
         
+        // Categorías de Servicios
+        Route::resource('service-categories', \App\Http\Controllers\ServiceCategoryController::class)->names('service-categories');
+        Route::post('service-categories/update-order', [\App\Http\Controllers\ServiceCategoryController::class, 'updateOrder'])->name('service-categories.update-order');
+        
         // Reportes
         Route::get('reports', [\App\Http\Controllers\Business\ReportController::class, 'index'])->name('reports');
         Route::get('reports/financial', [\App\Http\Controllers\Business\ReportController::class, 'financial'])->name('reports.financial');

@@ -23,7 +23,8 @@ import {
     Settings,
     FileText,
     Briefcase,
-    UserCheck
+    UserCheck,
+    FolderKanban
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -71,6 +72,11 @@ export function AppSidebar() {
             title: 'Servicios',
             href: '/business/services',
             icon: Package,
+        },
+        {
+            title: 'Categorías',
+            href: '/business/service-categories',
+            icon: FolderKanban,
         },
         {
             title: 'Reportes',

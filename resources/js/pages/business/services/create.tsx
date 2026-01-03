@@ -28,25 +28,22 @@ interface DeliveryTier {
     fee: string;
 }
 
-const categories = [
-    { value: 'cut', label: 'Corte' },
-    { value: 'beard', label: 'Barba' },
-    { value: 'coloring', label: 'Coloración' },
-    { value: 'styling', label: 'Peinado' },
-    { value: 'treatment', label: 'Tratamiento' },
-    { value: 'waxing', label: 'Depilación' },
-    { value: 'facial', label: 'Facial' },
-    { value: 'massage', label: 'Masaje' },
-    { value: 'nails', label: 'Uñas' },
-    { value: 'makeup', label: 'Maquillaje' },
-    { value: 'other', label: 'Otro' },
-];
+interface Category {
+    value: string;
+    label: string;
+    icon?: string;
+    color?: string;
+}
 
-export default function ServicesCreate({ professionals, establishment }: { professionals: Professional[], establishment?: Establishment }) {
+export default function ServicesCreate({ professionals, establishment, categories = [] }: { 
+    professionals: Professional[], 
+    establishment?: Establishment,
+    categories?: Category[]
+}) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         description: '',
-        category: '',
+        category_id: '',
         base_price: '',
         duration_minutes: '',
         professional_ids: [] as string[],
@@ -149,23 +146,44 @@ export default function ServicesCreate({ professionals, establishment }: { profe
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="category">Categoría</Label>
-                                <Select
-                                    value={data.category}
-                                    onValueChange={(value) => setData('category', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar categoría" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((category) => (
-                                            <SelectItem key={category.value} value={category.value}>
-                                                {category.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="category_id">Categoría</Label>
+                                    <Link 
+                                        href="/business/service-categories/create"
+                                        className="text-xs text-primary hover:underline"
+                                    >
+                                        + Nueva categoría
+                                    </Link>
+                                </div>
+                                {categories.length === 0 ? (
+                                    <div className="p-4 border border-dashed rounded-md text-center">
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                            Aún no has creado categorías
+                                        </p>
+                                        <Button variant="outline" size="sm" asChild>
+                                            <Link href="/business/service-categories/create">
+                                                Crear Primera Categoría
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Select
+                                        value={data.category_id}
+                                        onValueChange={(value) => setData('category_id', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar categoría" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map((category) => (
+                                                <SelectItem key={category.value} value={category.value}>
+                                                    {category.icon && `${category.icon} `}{category.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                                {errors.category_id && <p className="text-sm text-destructive">{errors.category_id}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
