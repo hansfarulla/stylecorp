@@ -423,7 +423,7 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                     >
                         <Card className="transition-all duration-300 hover:shadow-2xl hover:border-primary/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative group border-primary/20">
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
-                            <CardContent className="p-0 sm:p-6 relative z-10">
+                            <CardContent className="p-2 sm:p-6 relative z-10">
                                 <style>{`
                                     .fc {
                                         --fc-border-color: color-mix(in srgb, var(--border), transparent 80%);
@@ -462,7 +462,7 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         transform: none;
                                     }
                                     .fc .fc-toolbar-title {
-                                        font-size: 1.75rem;
+                                        font-size: 1.125rem;
                                         font-weight: 800;
                                         color: var(--foreground);
                                         background: linear-gradient(135deg, var(--foreground), color-mix(in srgb, var(--foreground), transparent 40%));
@@ -471,15 +471,52 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         background-clip: text;
                                         letter-spacing: -0.025em;
                                     }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-toolbar-title {
+                                            font-size: 1.5rem;
+                                        }
+                                    }
+                                    @media (min-width: 768px) {
+                                        .fc .fc-toolbar-title {
+                                            font-size: 1.75rem;
+                                        }
+                                    }
+                                    .fc .fc-button {
+                                        font-size: 0.75rem;
+                                        padding: 0.5rem 0.75rem;
+                                    }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-button {
+                                            font-size: 0.875rem;
+                                            padding: 0.625rem 1rem;
+                                        }
+                                    }
+                                    @media (min-width: 768px) {
+                                        .fc .fc-button {
+                                            padding: 0.625rem 1.25rem;
+                                        }
+                                    }
                                     .fc .fc-col-header-cell {
-                                        padding: 1rem 0.5rem;
+                                        padding: 0.5rem 0.25rem;
                                         font-weight: 700;
-                                        font-size: 0.8125rem;
+                                        font-size: 0.625rem;
                                         text-transform: uppercase;
                                         letter-spacing: 0.05em;
                                         background: linear-gradient(180deg, color-mix(in srgb, var(--muted), transparent 60%), color-mix(in srgb, var(--muted), transparent 80%));
                                         border: none;
                                         position: relative;
+                                    }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-col-header-cell {
+                                            padding: 0.75rem 0.375rem;
+                                            font-size: 0.75rem;
+                                        }
+                                    }
+                                    @media (min-width: 768px) {
+                                        .fc .fc-col-header-cell {
+                                            padding: 1rem 0.5rem;
+                                            font-size: 0.8125rem;
+                                        }
                                     }
                                     .fc .fc-col-header-cell::after {
                                         content: '';
@@ -497,9 +534,17 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                     .fc .fc-daygrid-day-number {
                                         color: color-mix(in srgb, var(--foreground), transparent 10%);
                                         transition: all 0.3s ease;
-                                        padding: 0.375rem;
+                                        padding: 0.25rem;
                                         font-weight: 600;
-                                        border-radius: 0.5rem;
+                                        border-radius: 0.375rem;
+                                        font-size: 0.875rem;
+                                    }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-daygrid-day-number {
+                                            padding: 0.375rem;
+                                            font-size: 1rem;
+                                            border-radius: 0.5rem;
+                                        }
                                     }
                                     .fc .fc-daygrid-day {
                                         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -525,25 +570,58 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         transform: scale(1.05);
                                     }
                                     .fc .fc-daygrid-day-frame {
-                                        min-height: 110px;
+                                        min-height: 60px;
+                                    }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-daygrid-day-frame {
+                                            min-height: 80px;
+                                        }
+                                    }
+                                    @media (min-width: 768px) {
+                                        .fc .fc-daygrid-day-frame {
+                                            min-height: 110px;
+                                        }
                                     }
                                     .fc .fc-daygrid-day-top {
                                         flex-direction: row;
-                                        padding: 0.5rem;
+                                        padding: 0.25rem;
+                                    }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-daygrid-day-top {
+                                            padding: 0.5rem;
+                                        }
                                     }
                                     .fc .fc-event {
                                         cursor: pointer;
-                                        border-radius: 0.75rem;
+                                        border-radius: 0.5rem;
                                         border: none;
-                                        padding: 6px 10px;
-                                        margin: 3px 5px;
-                                        font-size: 0.8125rem;
+                                        padding: 2px 4px;
+                                        margin: 1px 2px;
+                                        font-size: 0.625rem;
                                         font-weight: 600;
-                                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+                                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
                                         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                                         backdrop-filter: blur(12px);
                                         position: relative;
                                         overflow: hidden;
+                                        line-height: 1.2;
+                                    }
+                                    @media (min-width: 640px) {
+                                        .fc .fc-event {
+                                            padding: 4px 6px;
+                                            margin: 2px 3px;
+                                            font-size: 0.75rem;
+                                            border-radius: 0.625rem;
+                                        }
+                                    }
+                                    @media (min-width: 768px) {
+                                        .fc .fc-event {
+                                            padding: 6px 10px;
+                                            margin: 3px 5px;
+                                            font-size: 0.8125rem;
+                                            border-radius: 0.75rem;
+                                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+                                        }
                                     }
                                     .fc .fc-event::before {
                                         content: '';
@@ -668,6 +746,10 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                         gap: 1rem;
                                         flex-wrap: wrap;
                                     }
+                                    .fc .fc-toolbar-chunk {
+                                        display: flex;
+                                        align-items: center;
+                                    }
                                     .fc-daygrid-day-events {
                                         display: ${isMobile ? 'none' : 'block'};
                                     }
@@ -676,13 +758,51 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                     }
                                     @media (max-width: 768px) {
                                         .fc .fc-toolbar {
-                                            flex-direction: row;
-                                            align-items: center;
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 0.75rem;
+                                            align-items: stretch;
+                                        }
+                                        .fc .fc-toolbar-chunk {
+                                            display: flex;
                                             justify-content: space-between;
+                                            align-items: center;
+                                        }
+                                        .fc .fc-toolbar-chunk:nth-child(1) {
+                                            order: 2;
+                                        }
+                                        .fc .fc-toolbar-chunk:nth-child(2) {
+                                            order: 1;
+                                        }
+                                        .fc .fc-toolbar-chunk:nth-child(3) {
+                                            order: 2;
+                                        }
+                                        .fc-header-toolbar {
+                                            display: grid !important;
+                                            grid-template-columns: 1fr auto;
+                                            grid-template-rows: auto auto;
+                                            gap: 0.75rem;
+                                            width: 100%;
+                                        }
+                                        .fc-header-toolbar .fc-toolbar-chunk:nth-child(1) {
+                                            grid-column: 1;
+                                            grid-row: 2;
+                                            justify-self: start;
+                                        }
+                                        .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
+                                            grid-column: 1 / -1;
+                                            grid-row: 1;
+                                            justify-self: center;
+                                        }
+                                        .fc-header-toolbar .fc-toolbar-chunk:nth-child(3) {
+                                            grid-column: 2;
+                                            grid-row: 2;
+                                            justify-self: end;
                                         }
                                         .fc .fc-toolbar-title {
-                                            font-size: 1.1rem;
-                                            text-align: left;
+                                            font-size: 1rem;
+                                            text-align: center;
+                                            width: 100%;
                                         }
                                         .fc .fc-button {
                                             padding: 0.4rem 0.6rem;
@@ -743,7 +863,7 @@ export default function AppointmentsIndex({ appointments, services = [], profess
                                     headerToolbar={isMobile ? {
                                         left: 'prev,next',
                                         center: 'title',
-                                        right: '' // Custom dropdown handled outside
+                                        right: 'today' // Balance the layout
                                     } : {
                                         left: 'prev,next today',
                                         center: 'title',

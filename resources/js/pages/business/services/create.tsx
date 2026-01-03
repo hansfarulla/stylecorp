@@ -294,6 +294,7 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                                 value={data.home_service_surcharge}
                                                 onChange={(e) => setData('home_service_surcharge', e.target.value)}
                                                 placeholder="0"
+                                                className="h-11"
                                             />
                                             <p className="text-xs text-muted-foreground">
                                                 Este monto se aplica si no se definen rangos específicos o como base.
@@ -311,10 +312,23 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                             </div>
                                             
                                             {data.delivery_tiers.length > 0 ? (
-                                                <div className="space-y-2">
+                                                <div className="space-y-3">
                                                     {data.delivery_tiers.map((tier, index) => (
-                                                        <div key={index} className="flex items-end gap-2">
-                                                            <div className="grid grid-cols-3 gap-2 flex-1">
+                                                        <div key={index} className="border rounded-lg p-3 md:p-4 space-y-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <Label className="text-sm font-semibold">Rango {index + 1}</Label>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => removeDeliveryTier(index)}
+                                                                    className="border-red-500/50 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 md:mr-2" />
+                                                                    <span className="hidden md:inline">Eliminar</span>
+                                                                </Button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                                                 <div className="space-y-1">
                                                                     <Label className="text-xs">Desde (km)</Label>
                                                                     <Input
@@ -324,6 +338,7 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                                                         value={tier.from_km}
                                                                         onChange={(e) => updateDeliveryTier(index, 'from_km', e.target.value)}
                                                                         placeholder="0"
+                                                                        className="h-11"
                                                                     />
                                                                     {errors[`delivery_tiers.${index}.from_km`] && <p className="text-xs text-destructive">{errors[`delivery_tiers.${index}.from_km`]}</p>}
                                                                 </div>
@@ -336,6 +351,7 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                                                         value={tier.to_km}
                                                                         onChange={(e) => updateDeliveryTier(index, 'to_km', e.target.value)}
                                                                         placeholder="5"
+                                                                        className="h-11"
                                                                     />
                                                                     {errors[`delivery_tiers.${index}.to_km`] && <p className="text-xs text-destructive">{errors[`delivery_tiers.${index}.to_km`]}</p>}
                                                                 </div>
@@ -347,18 +363,11 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                                                         value={tier.fee}
                                                                         onChange={(e) => updateDeliveryTier(index, 'fee', e.target.value)}
                                                                         placeholder="1000"
+                                                                        className="h-11"
                                                                     />
                                                                     {errors[`delivery_tiers.${index}.fee`] && <p className="text-xs text-destructive">{errors[`delivery_tiers.${index}.fee`]}</p>}
                                                                 </div>
                                                             </div>
-                                                            <Button
-                                                                type="button"
-                                                                variant="destructive"
-                                                                size="icon"
-                                                                onClick={() => removeDeliveryTier(index)}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -379,6 +388,7 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                                 value={data.home_service_radius_km}
                                                 onChange={(e) => setData('home_service_radius_km', e.target.value)}
                                                 placeholder="Ej: 5.0"
+                                                className="h-11"
                                             />
                                             {errors.home_service_radius_km && <p className="text-sm text-destructive">{errors.home_service_radius_km}</p>}
                                         </div>
@@ -386,12 +396,12 @@ export default function ServicesCreate({ professionals, establishment, categorie
                                         <div className="space-y-2">
                                             <Label>Centro de Cobertura</Label>
                                             <div className="flex flex-col gap-2">
-                                                <div className="flex gap-2">
-                                                    <Button type="button" variant="outline" onClick={() => setIsLocationPickerOpen(true)} className="w-full">
+                                                <div className="flex flex-col md:flex-row gap-2">
+                                                    <Button type="button" variant="outline" onClick={() => setIsLocationPickerOpen(true)} className="w-full h-11">
                                                         <MapPin className="mr-2 h-4 w-4" />
                                                         Seleccionar en Mapa
                                                     </Button>
-                                                    <Button type="button" variant="secondary" onClick={handleUseCurrentLocation} className="w-full">
+                                                    <Button type="button" variant="secondary" onClick={handleUseCurrentLocation} className="w-full h-11">
                                                         Usar Ubicación Actual
                                                     </Button>
                                                 </div>

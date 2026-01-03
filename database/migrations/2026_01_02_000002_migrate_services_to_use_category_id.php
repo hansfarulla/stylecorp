@@ -95,24 +95,35 @@ return new class extends Migration
                 $categoryData = collect($defaultCategories)->firstWhere('slug', $categorySlug);
                 
                 if ($categoryData) {
-                    // Crear la categoría
-                    $categoryId = DB::table('service_categories')->insertGetId([
-                        'tenant_id' => $establishment->tenant_id,
-                        'establishment_id' => $establishment->establishment_id,
-                        'name' => $categoryData['name'],
-                        'slug' => $categoryData['slug'],
-                        'icon' => $categoryData['icon'],
-                        'color' => $categoryData['color'],
-                        'order' => $categoryData['order'],
-                        'is_active' => true,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                    // Buscar si ya existe la categoría
+                    $existingCategory = DB::table('service_categories')
+                        ->where('establishment_id', $establishment->establishment_id)
+                        ->where('slug', $categoryData['slug'])
+                        ->first();
 
-                    // Actualizar servicios con esta categoría
+                    if ($existingCategory) {
+                        $categoryId = $existingCategory->id;
+                    } else {
+                        // Crear la categoría solo si no existe
+                        $categoryId = DB::table('service_categories')->insertGetId([
+                            'tenant_id' => $establishment->tenant_id,
+                            'establishment_id' => $establishment->establishment_id,
+                            'name' => $categoryData['name'],
+                            'slug' => $categoryData['slug'],
+                            'icon' => $categoryData['icon'],
+                            'color' => $categoryData['color'],
+                            'order' => $categoryData['order'],
+                            'is_active' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+
+                    // Actualizar servicios con esta categoría (solo los que aún no tienen category_id)
                     DB::table('services')
                         ->where('establishment_id', $establishment->establishment_id)
                         ->where('category', $categorySlug)
+                        ->whereNull('category_id')
                         ->update(['category_id' => $categoryId]);
                 }
             }
