@@ -88,7 +88,7 @@ class Service extends Model
 		'name',
 		'description',
 		'slug',
-		'category',
+		'category_id',
 		'base_price',
 		'price_varies_by_professional',
 		'professional_prices',
@@ -118,6 +118,11 @@ class Service extends Model
 	public function establishment()
 	{
 		return $this->belongsTo(Establishment::class);
+	}
+
+	public function category()
+	{
+		return $this->belongsTo(ServiceCategory::class, 'category_id');
 	}
 
 	public function professional()

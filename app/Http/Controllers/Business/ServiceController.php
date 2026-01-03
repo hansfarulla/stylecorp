@@ -27,8 +27,8 @@ class ServiceController extends Controller
         }
 
         $services = Service::where('establishment_id', $establishment->id)
-            ->with('professional')
-            ->orderBy('category')
+            ->with(['professional', 'category'])
+            ->orderBy('category_id')
             ->orderBy('name')
             ->get();
 
