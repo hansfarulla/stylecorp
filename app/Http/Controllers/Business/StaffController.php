@@ -158,8 +158,10 @@ class StaffController extends Controller
         ]);
     }
 
-    public function edit(User $staff)
+    public function edit($staffId)
     {
+        \Illuminate\Support\Facades\Log::info('StaffController@edit called', ['staff_id' => $staffId]);
+        $staff = User::findOrFail($staffId);
         $establishment = auth()->user()->activeEstablishment;
         
         if (!$establishment) {

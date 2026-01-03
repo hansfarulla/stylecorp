@@ -119,9 +119,16 @@ class User extends Authenticatable
 		return $this->hasMany(Appointment::class, 'professional_id');
 	}
 
-	public function establishments()
+	public function ownedEstablishments()
 	{
 		return $this->hasMany(Establishment::class, 'owner_id');
+	}
+
+	public function establishments()
+	{
+		return $this->belongsToMany(Establishment::class)
+					->withPivot('id', 'role', 'commission_model', 'commission_percentage', 'commission_tiers', 'fixed_amount_per_service', 'base_salary', 'booth_rental_fee', 'tips_included_in_commission', 'payment_period', 'status', 'auto_accept_appointments', 'start_date', 'end_date', 'agreement_terms', 'agreement_signed_at')
+					->withTimestamps();
 	}
 
 	public function activeEstablishment()

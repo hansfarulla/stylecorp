@@ -25,7 +25,7 @@ class StaffPermissionsController extends Controller
 
         // Obtener staff del establecimiento (excluyendo owners y super_admins)
         $staff = $establishment->users()
-            ->whereNotIn('role', ['owner', 'super_admin'])
+            ->whereNotIn('users.role', ['owner', 'super_admin'])
             ->with(['permissions' => function ($query) use ($establishment) {
                 $query->where('permission_user.establishment_id', $establishment->id)
                       ->where('permission_user.granted', true);
@@ -41,7 +41,7 @@ class StaffPermissionsController extends Controller
                 ];
             });
 
-        return Inertia::render('business/staff/permissions-index', [
+        return Inertia::render('business/staff/permissions/index', [
             'staff' => $staff,
             'establishment' => $establishment,
         ]);
@@ -50,7 +50,7 @@ class StaffPermissionsController extends Controller
     /**
      * Mostrar formulario de permisos granulares para un empleado
      */
-    public function edit(Request $request, User $user)
+    public function edit(Request $request, User $staff)
     {
         $establishment = Establishment::findOrFail($request->user()->active_establishment_id);
 
@@ -60,29 +60,29 @@ class StaffPermissionsController extends Controller
         }
 
         // Verificar que el usuario pertenece al establecimiento
-        if (!$user->establishments()->where('establishments.id', $establishment->id)->exists()) {
+        if (!$staff->establishments()->where('establishments.id', $establishment->id)->exists()) {
             abort(404, 'El usuario no pertenece a este establecimiento.');
         }
 
         // No se pueden modificar permisos de owners ni super_admins
-        if (in_array($user->role, ['owner', 'super_admin'])) {
+        if (in_array($staff->role, ['owner', 'super_admin'])) {
             abort(403, 'No se pueden modificar permisos de dueños o super administradores.');
         }
 
         $permissions = Permission::orderBy('category')->orderBy('order')->get()->groupBy('category');
         
         // Obtener permisos actuales del usuario
-        $userPermissions = $user->permissions()
+        $userPermissions = $staff->permissions()
             ->where('permission_user.establishment_id', $establishment->id)
             ->where('permission_user.granted', true)
             ->pluck('permissions.id')
             ->toArray();
 
         // Permisos del rol por defecto
-        $rolePermissions = \App\Enums\UserRole::from($user->role)->permissions();
+        $rolePermissions = \App\Enums\UserRole::from($staff->role)->permissions();
 
-        return Inertia::render('business/staff/permissions', [
-            'staff' => $user->load('establishments'),
+        return Inertia::render('business/staff/permissions/edit', [
+            'staff' => $staff->load('establishments'),
             'permissions' => $permissions,
             'userPermissions' => $userPermissions,
             'rolePermissions' => $rolePermissions,
@@ -93,7 +93,7 @@ class StaffPermissionsController extends Controller
     /**
      * Actualizar permisos granulares de un empleado
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $staff)
     {
         $establishment = Establishment::findOrFail($request->user()->active_establishment_id);
 
@@ -103,7 +103,7 @@ class StaffPermissionsController extends Controller
         }
 
         // Verificar que el usuario pertenece al establecimiento
-        if (!$user->establishments()->where('establishments.id', $establishment->id)->exists()) {
+        if (!$staff->establishments()->where('establishments.id', $establishment->id)->exists()) {
             abort(404, 'El usuario no pertenece a este establecimiento.');
         }
 
@@ -113,13 +113,13 @@ class StaffPermissionsController extends Controller
         ]);
 
         // Eliminar permisos anteriores para este establecimiento
-        $user->permissions()
+        $staff->permissions()
             ->wherePivot('establishment_id', $establishment->id)
             ->detach();
 
         // Asignar nuevos permisos
         foreach ($validated['permissions'] as $permissionId) {
-            $user->permissions()->attach($permissionId, [
+            $staff->permissions()->attach($permissionId, [
                 'granted' => true,
                 'granted_by' => $request->user()->id,
                 'establishment_id' => $establishment->id,
@@ -127,7 +127,7 @@ class StaffPermissionsController extends Controller
         }
 
         return redirect()
-            ->route('business.staff.permissions.edit', $user)
+            ->route('business.staff.permissions.edit', $staff)
             ->with('success', 'Permisos actualizados exitosamente.');
     }
 }

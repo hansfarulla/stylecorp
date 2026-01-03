@@ -107,11 +107,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('applications/{application}/approve', [\App\Http\Controllers\Business\StaffApplicationController::class, 'approve'])->name('applications.approve');
         Route::post('applications/{application}/reject', [\App\Http\Controllers\Business\StaffApplicationController::class, 'reject'])->name('applications.reject');
         
-        // Personal
-        Route::resource('staff', \App\Http\Controllers\Business\StaffController::class);
+        // Personal - Rutas de permisos ANTES del resource
         Route::get('staff/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'index'])->name('staff.permissions.index');
-        Route::get('staff/{user}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'edit'])->name('staff.permissions.edit');
-        Route::put('staff/{user}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'update'])->name('staff.permissions.update');
+        Route::get('staff/{staff}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'edit'])->name('staff.permissions.edit')->where('staff', '[0-9]+');
+        Route::put('staff/{staff}/permissions', [\App\Http\Controllers\Business\StaffPermissionsController::class, 'update'])->name('staff.permissions.update')->where('staff', '[0-9]+');
+        
+        // Personal - Resource routes
+        Route::resource('staff', \App\Http\Controllers\Business\StaffController::class);
         
         // Citas
         Route::patch('appointments/{appointment}/status', [\App\Http\Controllers\Business\AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
